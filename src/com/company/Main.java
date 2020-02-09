@@ -22,6 +22,7 @@ public class Main {
         final ArrayList<String> arrayList_plots = new ArrayList<>();
         final ArrayList<String> arrayList_generes = new ArrayList<>();
         final ArrayList<String> arrayList_mangakas = new ArrayList<>();
+        final ArrayList<String> arrayList_imgs = new ArrayList<>();
 
         String url = "https://animeunity.it/anime.php?c=archive&page=*";
 
@@ -37,9 +38,14 @@ public class Main {
         Elements mangakas = document.select("p.card-text.text-secondary");
         Elements plots = document.select("p.card-text.archive-plot");
         Elements generes = document.select("span.badge.btn-archive-genres");
+        Elements imgs = document.select("img.card-img.archive-card-img");
 
         for (Element title : titles) {
             arrayList_titles.add(title.text());
+        }
+
+        for (Element img:imgs) {
+            arrayList_imgs.add(img.attr("abs:src"));
         }
 
         for (Element mangaka : mangakas) {
@@ -70,6 +76,7 @@ public class Main {
             JsonObject object1 = new JsonObject();
             object1.addProperty("Titolo",arrayList_titles.get(i));
             object1.addProperty("Url",arrayList_urls.get(i));
+            object1.addProperty("Img_url",arrayList_imgs.get(i));
             object1.addProperty("Trama",arrayList_plots.get(i));
             object1.addProperty("Mangaka",arrayList_mangakas.get(i));
             object1.addProperty("Genere",arrayList_generes.get(i));
@@ -78,8 +85,6 @@ public class Main {
         }
         System.out.println(arrayList_titles.size() + " " + arrayList_urls.size());
         object.add("Anime",jsonArray);
-
-
 
         Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
         String prettyJson = gson.toJson(object).replace("\\\\", "\\");
