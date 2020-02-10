@@ -24,14 +24,49 @@ public class Main {
         final ArrayList<String> arrayList_mangakas = new ArrayList<>();
         final ArrayList<String> arrayList_imgs = new ArrayList<>();
 
+        final ArrayList<String> arrayList_inCorso_titles = new ArrayList<>();
+        final ArrayList<String> arrayList_inCorso_urls = new ArrayList<>();
+        final ArrayList<String> arrayList_inCorso_imgs = new ArrayList<>();
+
         String url = "https://animeunity.it/anime.php?c=archive&page=*";
 
         Document document = Jsoup.connect(url)
                 .header("Accept-Encoding", "gzip, deflate")
                 .userAgent("Mozilla/5.0 (Windows NT 6.1; WOW64; rv:23.0) Gecko/20100101 Firefox/23.0")
                 .maxBodySize(0)
+                .timeout(500000)
+                .get();
+
+        String url2 = "https://animeunity.it/anime.php?c=onair";
+
+        Document document2 = Jsoup.connect(url2)
+                .header("Accept-Encoding", "gzip, deflate")
+                .userAgent("Mozilla/5.0 (Windows NT 6.1; WOW64; rv:23.0) Gecko/20100101 Firefox/23.0")
+                .maxBodySize(0)
                 .timeout(600000)
                 .get();
+
+
+        Elements titles_corso = document2.select(".col-md-7.col-sm-7.archive-col>.card-block>.card-title>b");
+        Elements imgs_corso = document2.select(".card-img-top.archive-card-img>a>img");
+        Elements urls_corso = document2.select(".card-img-top.archive-card-img>a");
+
+
+        for (Element title : titles_corso) {
+            arrayList_inCorso_titles.add(title.text());
+        }
+
+
+        for (Element img : imgs_corso) {
+            arrayList_inCorso_imgs.add(img.attr("abs:src"));
+        }
+
+        for (Element url_c:urls_corso) {
+            arrayList_inCorso_urls.add(url_c.attr("href"));
+        }
+
+        System.out.println(arrayList_inCorso_imgs.size() + arrayList_inCorso_titles.size() + arrayList_inCorso_urls.size());
+
 
         Elements urls = document.select("a");
         Elements titles = document.select("h6.card-title");
@@ -83,8 +118,19 @@ public class Main {
             jsonArray.add(object1);
 
         }
-        System.out.println(arrayList_titles.size() + " " + arrayList_urls.size());
+
+
+        JsonArray inCorsoArray = new JsonArray();
+        for (int y = 0; y < arrayList_inCorso_titles.size();y++){
+            JsonObject jsonObject = new JsonObject();
+            jsonObject.addProperty("Titolo",arrayList_inCorso_titles.get(y));
+            jsonObject.addProperty("Img_url",arrayList_inCorso_imgs.get(y));
+            jsonObject.addProperty("Url",arrayList_inCorso_urls.get(y));
+            inCorsoArray.add(jsonObject);
+        }
+
         object.add("Anime",jsonArray);
+        object.add("Anime_in_Corso",inCorsoArray);
 
         Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
         String prettyJson = gson.toJson(object).replace("\\\\", "\\");
